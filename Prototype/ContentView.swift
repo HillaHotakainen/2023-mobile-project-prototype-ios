@@ -16,22 +16,13 @@ struct Person: Codable {
     let firstName: String
     let lastName: String
     let age: Int
+    let id : Int
 }
 
 struct NewUser: Encodable {
     let firstName: String
     let lastName: String
     let age: Int
-}
-
-func parseJson(json: Data) -> Array<Person>? {
-    do {
-        let jsonDecoder = JSONDecoder()
-        let httpResult : HttpResult = try jsonDecoder.decode(HttpResult.self, from: json)
-        return httpResult.users
-    } catch {
-        return nil
-    }
 }
 
 struct ContentView: View {
@@ -44,22 +35,37 @@ struct ContentView: View {
         NavigationStack{
             VStack {
                 Text("Prototype").font(.largeTitle)
-                if(people != nil) {
-                    List {
-                        ForEach(people!, id: \.firstName) {
-                            person in
-                            Text("\(person.firstName) \(person.lastName)")
-                        }
+                    NavigationLink {
+                        allUsersview(people: people)
+                    } label: {
+                        Label("All users", systemImage: "")
                     }
-                }
+                    .navigationTitle("Prototype")
+                
                 Button("fetch all") {
-                    AF.request("https://dummyjson.com/users/").responseDecodable(of: HttpResult.self) { response in
+                    AF.request("https://dummyjson.com/users/")
+                        .responseDecodable(of: HttpResult.self) { response in
                         if let result = response.value {
                             self.people = result.users
                         }
                     }
                 }
             }
+        }
+    }
+}
+struct allUsersview: View {
+    let people: [Person]?
+    var body: some View {
+        if(people != nil){
+            List {
+                ForEach(people!, id: \.id) {
+                    person in
+                    Text("\(person.firstName) \(person.lastName)")
+                }
+            }
+        } else {
+            Text("Fetch the users first please")
         }
     }
 }
