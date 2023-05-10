@@ -80,17 +80,23 @@ struct addNewUserView: View {
             TextField("First Name", text: $firstName)
             TextField("Last Name", text: $lastName)
             Button("Add User") {
-                let newUser = NewUser(firstName: firstName, lastName: lastName)
-                AF.request("https://dummyjson.com/users/add", method: .post, parameters: newUser, encoder: JSONParameterEncoder.default)
-                    .responseDecodable(of: Person.self) { response in
-                    if let result = response.value {
-                        self.added = "Added user: \(result.firstName) \(result.lastName)"
-                    } else {
-                        self.added = "Error wee woo"
-                    }
+                if !firstName.isEmpty && !lastName.isEmpty {
+                    let newUser = NewUser(firstName:firstName,lastName:lastName)
+                    AF.request("https://dummyjson.com/users/add",
+                        method: .post,
+                        parameters: newUser,
+                        encoder: JSONParameterEncoder.default)
+                        .responseDecodable(of: Person.self) { response in
+                            if let result = response.value{
+                            added =
+                            "New user: \(result.firstName) \(result.lastName)"
+                            }
+                        }
+                } else {
+                    added = "Can't add empty"
                 }
             }
-            if let added = self.added {
+            if let added = added {
                 Text(added)
             }
         }
