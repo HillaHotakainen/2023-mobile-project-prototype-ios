@@ -15,46 +15,46 @@ struct HttpResult: Codable {
 struct Person: Codable {
     let firstName: String
     let lastName: String
-    let age: Int
     let id : Int
 }
 
 struct NewUser: Encodable {
     let firstName: String
     let lastName: String
-    let age: Int
 }
 
 struct ContentView: View {
     @State var people : Array<Person>? = nil
-    @State var firstName = ""
-    @State var lastName = ""
-    @State var age = "1"
     
     var body: some View {
         NavigationStack{
             VStack {
                 Text("Prototype").font(.largeTitle)
-                    NavigationLink {
-                        allUsersview(people: people)
-                    } label: {
-                        Label("All users", systemImage: "")
-                    }
-                    .navigationTitle("Prototype")
-                
-                Button("fetch all") {
+                Button("Fetch all users") {
                     AF.request("https://dummyjson.com/users/")
                         .responseDecodable(of: HttpResult.self) { response in
                         if let result = response.value {
                             self.people = result.users
                         }
                     }
+                } .padding(2)
+                NavigationLink {
+                    allUsersView(people: people)
+                } label: {
+                    Label("All users", systemImage: "")
+                }
+                .navigationTitle("Prototype")
+                
+                NavigationLink {
+                    addNewUserView()
+                } label: {
+                    Label("Add new user", systemImage: "")
                 }
             }
         }
     }
 }
-struct allUsersview: View {
+struct allUsersView: View {
     let people: [Person]?
     var body: some View {
         if(people != nil){
@@ -66,6 +66,33 @@ struct allUsersview: View {
             }
         } else {
             Text("Fetch the users first please")
+        }
+    }
+}
+
+struct addNewUserView: View {
+    @State var firstName: String = ""
+    @State var lastName: String = ""
+    @State var added: String?
+    
+    var body: some View {
+        Form {
+            TextField("First Name", text: $firstName)
+            TextField("Last Name", text: $lastName)
+            Button("Add User") {
+                let newUser = NewUser(firstName: firstName, lastName: lastName)
+                AF.request("https://dummyjson.com/users/add", method: .post, parameters: newUser, encoder: JSONParameterEncoder.default)
+                    .responseDecodable(of: Person.self) { response in
+                    if let result = response.value {
+                        self.added = "Added user: \(result.firstName) \(result.lastName)"
+                    } else {
+                        self.added = "Error wee woo"
+                    }
+                }
+            }
+            if let added = self.added {
+                Text(added)
+            }
         }
     }
 }
